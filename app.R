@@ -80,7 +80,7 @@ server <- function(input, output) {
     months_data$month_year <- format(as.Date(months_data$date), "%Y-%m")
     months_data$cumulative_inflation <- cumprod(1 + (as.numeric(months_data$inflation) / 100)) - 1
     ggplot(months_data, aes(x = month_year, y = cumulative_inflation)) +
-      geom_col(size = 1, group = 1) +
+      geom_col(linewidth = 1, group = 1) +
       scale_y_continuous(labels = scales::percent) +
       theme(axis.text.x = element_text(angle = 90)) +
       labs(#title = "Cumulative Inflation Over Time",
