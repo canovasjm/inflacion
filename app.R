@@ -30,7 +30,7 @@ ui <- fluidPage(
       # Select end date
       airDatepickerInput("end_date",
                          label = "Fecha fin",
-                         value = format(Sys.Date(), "%Y-%m-%d"),
+                         value = max(as.Date(inflation_data$date)),
                          minDate = min(as.Date(inflation_data$date)),
                          maxDate = max(as.Date(inflation_data$date)),
                          view = "months", #editing what the popup calendar shows when it opens
