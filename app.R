@@ -11,14 +11,14 @@ inflation_data <- read.csv("inflation_data.csv")
 ui <- fluidPage(
   
   # App title
-  titlePanel("Inflacion acumulada Argentina"),
+  titlePanel("Inflación acumulada Argentina"),
   
   # Sidebar with inputs for start date and end date
   sidebarLayout(
     sidebarPanel(
       # Select start date
       airDatepickerInput("start_date",
-                         label = "Fecha inicio",
+                         label = "Mes inicio",
                          value = "2017-01-01",
                          minDate = min(as.Date(inflation_data$date)),
                          maxDate = max(as.Date(inflation_data$date)),
@@ -29,7 +29,7 @@ ui <- fluidPage(
       
       # Select end date
       airDatepickerInput("end_date",
-                         label = "Fecha fin",
+                         label = "Mes fin",
                          value = max(as.Date(inflation_data$date)),
                          minDate = min(as.Date(inflation_data$date)),
                          maxDate = max(as.Date(inflation_data$date)),
@@ -39,16 +39,27 @@ ui <- fluidPage(
       ),
       
       # Display cumulative inflation
-      h4("Inflacion acumulada del periodo:"),
-      verbatimTextOutput("cumulative_inflation")
+      h4(strong("Inflación acumulada del periodo:")),
+      verbatimTextOutput("cumulative_inflation"),
+      br(),
+      
+      # Sources
+      h4(strong("Fuente")),
+      HTML("<p> INDEC, Dirección Nacional de Estadísticas de Precios, Dirección de Índices de Precios de Consumo. 
+                Link: <a href=https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31 > https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31 </a></p>
+            <p> Período de referencia: Diciembre 2016=100 </p>"),
+      br(),
+      h4(strong("Código")),
+      HTML("<p> <a href=https://github.com/canovasjm/inflacion > 
+                https://github.com/canovasjm/inflacion </a> </p>")
     ),
     
     # Display plot and table
     mainPanel(
-      h4("Inflacion acumulada a traves del tiempo"),
+      h4("Inflación acumulada a traves del tiempo"),
       plotOutput("inflation_plot"),
       hr(),
-      h4("Inflacion acumulada - Valores"),
+      h4("Inflación acumulada - Valores"),
       tableOutput("inflation_table")
     )
   )
@@ -85,7 +96,7 @@ server <- function(input, output) {
       theme(axis.text.x = element_text(angle = 90)) +
       labs(#title = "Cumulative Inflation Over Time",
            x = "Año-mes",
-           y = "Inflacion acumulada")
+           y = "Inflación acumulada")
   })
 
   # Create table
@@ -95,7 +106,7 @@ server <- function(input, output) {
     months_data <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
     months_data$month_year <- format(as.Date(months_data$date), "%Y-%m")
     months_data$cumulative_inflation <- (cumprod(1 + (as.numeric(months_data$inflation) / 100)) - 1) * 100
-    data.frame(Fecha = format(as.Date(months_data$date), "%Y-%m"), 
+    data.frame(Mes = format(as.Date(months_data$date), "%Y-%m"), 
                Inflacion_mensual = months_data$inflation, 
                Inflacion_acumulada = months_data$cumulative_inflation)
   })
