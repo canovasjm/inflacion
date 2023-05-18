@@ -5,7 +5,7 @@ library(lubridate)
 library(shinyWidgets)
 
 # Read the inflation data from a csv file
-inflation_data <- read.csv("inflation_data.csv")
+inflation_data <- read.csv("https://raw.githubusercontent.com/canovasjm/inflacion/main/inflation_data.csv")
 
 # Define the UI
 ui <- fluidPage(
@@ -39,7 +39,7 @@ ui <- fluidPage(
       ),
       
       # Display cumulative inflation
-      h4(strong("Inflación acumulada del periodo:")),
+      h4(strong("Inflación acumulada del periodo")),
       verbatimTextOutput("cumulative_inflation"),
       br(),
       
