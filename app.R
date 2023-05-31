@@ -56,13 +56,13 @@ ui <- fluidPage(
     
     # Display plot and table
     mainPanel(
-      h4("Inflación a través del tiempo"),
+      h4("Inflación - Gráficos"),
       fluidRow(
         column(width = 6, plotOutput("inflation_plot1")), # First plot
         column(width = 6, plotOutput("inflation_plot2"))  # Second plot
       ),
       hr(),
-      h4("Inflación acumulada - Valores"),
+      h4("Inflación - Valores"),
       tableOutput("inflation_table")
     )
   )
