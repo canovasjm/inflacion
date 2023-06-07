@@ -131,8 +131,10 @@ server <- function(input, output) {
       Inflacion_acumulada = months_data$cumulative_inflation
     ) %>%
       gt() %>%
-      #tab_header(title = "Inflation Data") %>%  # Set the table header
-      fmt_number(columns = c("Inflacion_mensual", "Inflacion_acumulada"), decimals = 2)  # Format numeric columns
+      fmt_percent(columns = c("Inflacion_mensual", "Inflacion_acumulada"), decimals = 2, scale_values = FALSE) %>% # Format numeric columns
+      cols_align(align = "left", columns = Mes) %>% 
+      cols_label(Inflacion_mensual = "Inflacion mensual", Inflacion_acumulada = "Inflacion acumulada") %>% 
+      tab_options(table.width = pct(50))
   })
   
 }
