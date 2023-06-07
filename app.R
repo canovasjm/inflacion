@@ -3,6 +3,7 @@ library(shiny)
 library(ggplot2)
 library(lubridate)
 library(shinyWidgets)
+library(gt)
 
 # Read the inflation data from a csv file
 inflation_data <- read.csv("https://raw.githubusercontent.com/canovasjm/inflacion/main/inflation_data.csv")
@@ -118,16 +119,24 @@ server <- function(input, output) {
   })
 
   # Create table
-  output$inflation_table <- renderTable({
+  output$inflation_table <- render_gt({
     start_date <- as.Date(paste0(input$start_date, "-01"))
     end_date <- as.Date(paste0(input$end_date, "-01"))
     months_data <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
     months_data$month_year <- format(as.Date(months_data$date), "%Y-%m")
     months_data$cumulative_inflation <- (cumprod(1 + (as.numeric(months_data$inflation) / 100)) - 1) * 100
-    data.frame(Mes = format(as.Date(months_data$date), "%Y-%m"), 
-               Inflacion_mensual = months_data$inflation, 
-               Inflacion_acumulada = months_data$cumulative_inflation)
+    data.frame(
+      Mes = format(as.Date(months_data$date), "%Y-%m"),
+      Inflacion_mensual = months_data$inflation,
+      Inflacion_acumulada = months_data$cumulative_inflation
+    ) %>%
+      gt() %>%
+      fmt_percent(columns = c("Inflacion_mensual", "Inflacion_acumulada"), decimals = 2, scale_values = FALSE) %>% # Format numeric columns
+      cols_align(align = "left", columns = Mes) %>% 
+      cols_label(Inflacion_mensual = "Inflacion mensual", Inflacion_acumulada = "Inflacion acumulada") %>% 
+      tab_options(table.width = pct(50))
   })
+  
 }
 
 # Run the app
