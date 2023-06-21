@@ -9,11 +9,11 @@ $$inflación \ acumulada = [(1 + inflación \ en \ mes \ 1) \times \dots \times 
 
 Donde $n$ es el número de meses del periodo bajo análisis. Por ejemplo, si se quiere calcular la inflación entre enero y abril de 2023, el valor de $n$ será 4.
 
-$$inflación \ acumulada = [(1 + 0.060) \times (1 + 0.066) \times (1 + 0.077) \times (1 + 0.084)] - 1$$  
+$$inflación \ acumulada = [(1 + 0.060) \times (1 + 0.066) \times (1 + 0.077) \times (1 + 0.084)] - 1$$
 
-$$inflación \ acumulada = 0.3192$$  
+$$inflación \ acumulada = 0.3192$$
 
-$$inflación \ acumulada = 31.92\%$$  
+$$inflación \ acumulada = 31.92\\%$$
 
 ### Fuente  
 INDEC, Dirección Nacional de Estadísticas de Precios, Dirección de Índices de Precios de Consumo.   
