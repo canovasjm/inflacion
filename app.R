@@ -14,6 +14,17 @@ ui <- fluidPage(
   # App title
   titlePanel("Inflación acumulada Argentina"),
   
+  # Background color for verbatimTextOutput()
+  tags$head(
+    tags$style(HTML("
+      /* this will affect all the pre elements */
+      pre {
+        color: black;
+        background-color: #ffffff;
+        font-weight: bolder;
+      }"))
+  ),
+  
   # Sidebar with inputs for start date and end date
   sidebarLayout(
     sidebarPanel(
