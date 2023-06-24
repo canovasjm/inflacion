@@ -22,6 +22,7 @@ ui <- fluidPage(
         color: black;
         background-color: #ffffff;
         font-weight: bolder;
+        font-size: 1.5em;
       }"))
   ),
   
