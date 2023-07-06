@@ -37,7 +37,8 @@ ui <- fluidPage(
                          maxDate = max(as.Date(inflation_data$date)),
                          view = "years", # editing what the popup calendar shows when it opens
                          minView = "months", # making it not possible to go down to a "days" view and pick the wrong date
-                         dateFormat = "yyyy-MM"
+                         dateFormat = "yyyy-MM",
+                         language = "es"
       ),
       
       # Select end date
@@ -48,7 +49,8 @@ ui <- fluidPage(
                          maxDate = max(as.Date(inflation_data$date)),
                          view = "months", #editing what the popup calendar shows when it opens
                          minView = "months", #making it not possible to go down to a "days" view and pick the wrong date
-                         dateFormat = "yyyy-MM"
+                         dateFormat = "yyyy-MM",
+                         language = "es"
       ),
       
       # Display cumulative inflation
