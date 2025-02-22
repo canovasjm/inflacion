@@ -160,7 +160,7 @@ server <- function(input, output) {
     data.frame(
       Mes = format(as.Date(transformed_data$date), "%Y-%m"),
       Inflacion_mensual = transformed_data$inflation,
-      Inflacion_acumulada = transformed_data$cumulative_inflation
+      Inflacion_acumulada = (transformed_data$cumulative_inflation) * 100
     ) %>%
       gt() %>%
       fmt_percent(columns = c("Inflacion_mensual", "Inflacion_acumulada"), decimals = 2, scale_values = FALSE) %>% # Format numeric columns
