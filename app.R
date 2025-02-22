@@ -86,28 +86,50 @@ ui <- fluidPage(
 # Define the server
 server <- function(input, output) {
   
-  # Calculate cumulative inflation
-  cumulative_inflation <- reactive({
+  # Reactive expression to filter data
+  filter_data <- reactive({
     start_date <- as.Date(paste0(input$start_date, "-01"))
     end_date <- as.Date(paste0(input$end_date, "-01"))
-    months_data <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
-    inflation_rates <- 1 + (as.numeric(months_data$inflation) / 100)
+    
+    df <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
+    df$month_year <- format(as.Date(df$date), "%Y-%m")
+    
+    return(df)
+  })
+  
+  
+  # Reactive expression to transform data
+  transform_data <- reactive({
+    df <- filter_data()
+    df$cumulative_inflation <- cumprod(1 + (as.numeric(df$inflation) / 100)) - 1
+    
+    return(df)
+  })
+  
+  
+  # Reactive expression to calculate cumulative inflation
+  cumulative_inflation <- reactive({
+    filtered_data <- filter_data()
+    if (nrow(filtered_data) == 0) return(NA)
+    
+    inflation_rates <- 1 + (as.numeric(filtered_data$inflation) / 100)
     cumulative_inflation <- prod(inflation_rates) - 1
+    
     return(cumulative_inflation)
   })
+  
   
   # Display cumulative inflation
   output$cumulative_inflation <- renderText({
     paste0(round(cumulative_inflation() * 100, 2), "%")
   })
   
+  
   # Create plot 1
   output$inflation_plot1 <- renderPlot({
-    start_date <- as.Date(paste0(input$start_date, "-01"))
-    end_date <- as.Date(paste0(input$end_date, "-01"))
-    months_data <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
-    months_data$month_year <- format(as.Date(months_data$date), "%Y-%m")
-    ggplot(months_data, aes(x = month_year, y = months_data$inflation)) +
+    filtered_data <- filter_data()
+    
+    ggplot(filtered_data, aes(x = month_year, y = filtered_data$inflation)) +
       geom_col(linewidth = 1, group = 1) +
       scale_y_continuous(labels = function(x) paste0(x, "%")) +
       theme(axis.text.x = element_text(angle = 90)) +
@@ -116,14 +138,12 @@ server <- function(input, output) {
         y = "Inflación mensual")
   })
   
+  
   # Create plot 2
   output$inflation_plot2 <- renderPlot({
-    start_date <- as.Date(paste0(input$start_date, "-01"))
-    end_date <- as.Date(paste0(input$end_date, "-01"))
-    months_data <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
-    months_data$month_year <- format(as.Date(months_data$date), "%Y-%m")
-    months_data$cumulative_inflation <- cumprod(1 + (as.numeric(months_data$inflation) / 100)) - 1
-    ggplot(months_data, aes(x = month_year, y = cumulative_inflation)) +
+    transformed_data <- transform_data() 
+    
+    ggplot(transformed_data, aes(x = month_year, y = cumulative_inflation)) +
       geom_line(linewidth = 1, group = 1) +
       scale_y_continuous(labels = scales::percent) +
       theme(axis.text.x = element_text(angle = 90)) +
@@ -132,17 +152,15 @@ server <- function(input, output) {
         y = "Inflación acumulada")
   })
 
+
   # Create table
   output$inflation_table <- render_gt({
-    start_date <- as.Date(paste0(input$start_date, "-01"))
-    end_date <- as.Date(paste0(input$end_date, "-01"))
-    months_data <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
-    months_data$month_year <- format(as.Date(months_data$date), "%Y-%m")
-    months_data$cumulative_inflation <- (cumprod(1 + (as.numeric(months_data$inflation) / 100)) - 1) * 100
+    transformed_data <- transform_data()
+    
     data.frame(
-      Mes = format(as.Date(months_data$date), "%Y-%m"),
-      Inflacion_mensual = months_data$inflation,
-      Inflacion_acumulada = months_data$cumulative_inflation
+      Mes = format(as.Date(transformed_data$date), "%Y-%m"),
+      Inflacion_mensual = transformed_data$inflation,
+      Inflacion_acumulada = transformed_data$cumulative_inflation
     ) %>%
       gt() %>%
       fmt_percent(columns = c("Inflacion_mensual", "Inflacion_acumulada"), decimals = 2, scale_values = FALSE) %>% # Format numeric columns
