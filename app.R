@@ -8,6 +8,8 @@ library(gt)
 # Read the inflation data from a csv file
 inflation_data <- read.csv("https://raw.githubusercontent.com/canovasjm/inflacion/main/inflation_data.csv")
 
+#source("R/filter_data.R")
+
 # Define the UI
 ui <- fluidPage(
   
@@ -87,29 +89,20 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   # Reactive expression to filter data
-  filter_data <- reactive({
-    start_date <- as.Date(paste0(input$start_date, "-01"))
-    end_date <- as.Date(paste0(input$end_date, "-01"))
-    
-    df <- inflation_data[inflation_data$date >= start_date & inflation_data$date <= end_date, ]
-    df$month_year <- format(as.Date(df$date), "%Y-%m")
-    
-    return(df)
+  filter_reactive <- reactive({
+    filter_data(inflation_data, input$start_date, input$end_date)
   })
   
-  
   # Reactive expression to transform data
-  transform_data <- reactive({
-    df <- filter_data()
-    df$cumulative_inflation <- cumprod(1 + (as.numeric(df$inflation) / 100)) - 1
-    
-    return(df)
+  transform_reactive <- reactive({
+    filtered_data <- filter_reactive()
+    transform_data(filtered_data)
   })
   
   
   # Reactive expression to calculate cumulative inflation
   cumulative_inflation <- reactive({
-    filtered_data <- filter_data()
+    filtered_data <- filter_reactive()
     if (nrow(filtered_data) == 0) return(NA)
     
     inflation_rates <- 1 + (as.numeric(filtered_data$inflation) / 100)
@@ -127,7 +120,7 @@ server <- function(input, output) {
   
   # Create plot 1
   output$inflation_plot1 <- renderPlot({
-    filtered_data <- filter_data()
+    filtered_data <- filter_reactive()
     
     ggplot(filtered_data, aes(x = month_year, y = filtered_data$inflation)) +
       geom_col(linewidth = 1, group = 1) +
@@ -141,7 +134,7 @@ server <- function(input, output) {
   
   # Create plot 2
   output$inflation_plot2 <- renderPlot({
-    transformed_data <- transform_data() 
+    transformed_data <- transform_reactive() 
     
     ggplot(transformed_data, aes(x = month_year, y = cumulative_inflation)) +
       geom_line(linewidth = 1, group = 1) +
@@ -155,7 +148,7 @@ server <- function(input, output) {
 
   # Create table
   output$inflation_table <- render_gt({
-    transformed_data <- transform_data()
+    transformed_data <- transform_reactive()
     
     data.frame(
       Mes = format(as.Date(transformed_data$date), "%Y-%m"),
