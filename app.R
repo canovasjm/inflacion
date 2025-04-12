@@ -73,6 +73,7 @@ ui <- fluidPage(
     mainPanel(
       h4("Inflación - Gráficos"),
       fluidRow(
+        downloadButton("download_inflation_cumulative", "Descargar grafico inflacion acumulada"),
         column(width = 6, plotOutput("inflation_plot1")), # First plot
         column(width = 6, plotOutput("inflation_plot2"))  # Second plot
       ),
@@ -126,7 +127,7 @@ server <- function(input, output) {
   })
   
   
-  # Create plot 1
+  # Create monthly inflation plot
   output$inflation_plot1 <- renderPlot({
     filtered_data <- filter_data()
     
@@ -140,20 +141,41 @@ server <- function(input, output) {
   })
   
   
-  # Create plot 2
-  output$inflation_plot2 <- renderPlot({
-    transformed_data <- transform_data() 
-    
-    ggplot(transformed_data, aes(x = month_year, y = cumulative_inflation)) +
+  # Create cumulative inflation plot
+  make_inflation_cumulative <- function(data) {
+    ggplot(data, aes(x = month_year, y = cumulative_inflation)) +
       geom_line(linewidth = 1, group = 1) +
       scale_y_continuous(labels = scales::percent) +
       theme(axis.text.x = element_text(angle = 90)) +
-      labs(#title = "Cumulative Inflation Over Time",
+      labs(
+        #title = "Cumulative Inflation Over Time",
         x = "Año-mes",
-        y = "Inflación acumulada")
+        y = "Inflación acumulada"
+      )
+  }
+  
+  output$inflation_plot2 <- renderPlot({
+    transformed_data <- transform_data() 
+    make_inflation_cumulative(transformed_data)
   })
+  
+  output$download_inflation_cumulative <- downloadHandler(
+    filename = function() {
+      paste0("inflacion_acumulada_grafico_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png")
+    },
+    content = function(file) {
+      transformed_data <- transform_data()
+      ggsave(
+        file,
+        plot = make_inflation_cumulative(transformed_data),
+        width = 8,
+        height = 5,
+        dpi = 300
+      )
+    }
+  )
 
-
+  
   # Create table
   output$inflation_table <- render_gt({
     transformed_data <- transform_data()
