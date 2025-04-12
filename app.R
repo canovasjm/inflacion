@@ -78,6 +78,7 @@ ui <- fluidPage(
       ),
       hr(),
       h4("Inflación - Valores"),
+      downloadButton('download_csv',"Descargar datos"),
       tableOutput("inflation_table")
     )
   )
@@ -168,6 +169,26 @@ server <- function(input, output) {
       cols_label(Inflacion_mensual = "Inflacion mensual", Inflacion_acumulada = "Inflacion acumulada") %>% 
       tab_options(table.width = pct(50))
   })
+  
+  
+  # Download handler
+  output$download_csv <- downloadHandler(
+    
+    filename = function() {
+      paste("inflation_data_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv", sep = "")
+    },
+    
+    content = function(file) {
+      transformed_data <- transform_data()
+      export_data <- data.frame(
+        mes = format(as.Date(transformed_data$date), "%Y-%m"),
+        inflacion_mensual = transformed_data$inflation,
+        inflacion_acumulada = (transformed_data$cumulative_inflation) * 100
+      )
+      
+      write.csv(export_data, file, row.names = FALSE)
+    }
+  )
   
 }
 
