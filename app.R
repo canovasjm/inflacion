@@ -32,7 +32,7 @@ ui <- fluidPage(
       # Select start date
       airDatepickerInput("start_date",
                          label = "Mes inicio",
-                         value = "2017-01-01",
+                         value = seq(max(as.Date(inflation_data$date)), length = 2, by = "-11 months")[2],
                          minDate = min(as.Date(inflation_data$date)),
                          maxDate = max(as.Date(inflation_data$date)),
                          view = "years", # Edit what the popup calendar shows when it opens
