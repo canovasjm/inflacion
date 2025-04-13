@@ -88,7 +88,7 @@ ui <- fluidPage(
       hr(), # Line break
       
       h4("Inflación - Valores"),
-      downloadButton('download_csv',"Descargar datos"),
+      downloadButton('download_csv',"Descargar datos en CSV"),
       tableOutput("inflation_table")
     )
   )
