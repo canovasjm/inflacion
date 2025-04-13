@@ -132,6 +132,18 @@ server <- function(input, output) {
     return(cumulative_inflation)
   })
   
+  # Reactive expression to create data for the table
+  data_for_table <- reactive({
+    df <- transform_data()
+    
+    table_data <- data.frame(
+      mes = format(as.Date(df$date), "%Y-%m"),
+      inflacion_mensual = df$inflation,
+      inflacion_acumulada = (df$cumulative_inflation) * 100
+    )
+    
+    return(table_data)
+  })
   
   ###########################
   # Render cumulative inflation value
@@ -229,17 +241,13 @@ server <- function(input, output) {
   
   # Render table
   output$inflation_table <- render_gt({
-    transformed_data <- transform_data()
+    table_data <- data_for_table()
     
-    data.frame(
-      Mes = format(as.Date(transformed_data$date), "%Y-%m"),
-      Inflacion_mensual = transformed_data$inflation,
-      Inflacion_acumulada = (transformed_data$cumulative_inflation) * 100
-    ) %>%
-      gt() %>%
-      fmt_percent(columns = c("Inflacion_mensual", "Inflacion_acumulada"), decimals = 2, scale_values = FALSE) %>% # Format numeric columns
-      cols_align(align = "left", columns = Mes) %>% 
-      cols_label(Inflacion_mensual = "Inflacion mensual", Inflacion_acumulada = "Inflacion acumulada") %>% 
+    table_data %>%
+    gt() %>%
+      fmt_percent(columns = c("inflacion_mensual", "inflacion_acumulada"), decimals = 2, scale_values = FALSE) %>% # Format numeric columns
+      cols_align(align = "left", columns = mes) %>% 
+      cols_label(mes = "Mes", inflacion_mensual = "Inflacion mensual", inflacion_acumulada = "Inflacion acumulada") %>% 
       tab_options(table.width = pct(50))
   })
   
@@ -252,14 +260,8 @@ server <- function(input, output) {
     },
     
     content = function(file) {
-      transformed_data <- transform_data()
-      export_data <- data.frame(
-        mes = format(as.Date(transformed_data$date), "%Y-%m"),
-        inflacion_mensual = transformed_data$inflation,
-        inflacion_acumulada = (transformed_data$cumulative_inflation) * 100
-      )
-      
-      write.csv(export_data, file, row.names = FALSE)
+      table_data <- data_for_table()
+      write.csv(table_data, file, row.names = FALSE)
     }
   )
   
