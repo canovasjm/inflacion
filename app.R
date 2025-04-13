@@ -35,8 +35,8 @@ ui <- fluidPage(
                          value = "2017-01-01",
                          minDate = min(as.Date(inflation_data$date)),
                          maxDate = max(as.Date(inflation_data$date)),
-                         view = "years", # editing what the popup calendar shows when it opens
-                         minView = "months", # making it not possible to go down to a "days" view and pick the wrong date
+                         view = "years", # Edit what the popup calendar shows when it opens
+                         minView = "months", # Make it not possible to go down to a "days" view and pick the wrong date
                          dateFormat = "yyyy-MM",
                          language = "es"
       ),
@@ -47,8 +47,8 @@ ui <- fluidPage(
                          value = max(as.Date(inflation_data$date)),
                          minDate = min(as.Date(inflation_data$date)),
                          maxDate = max(as.Date(inflation_data$date)),
-                         view = "months", #editing what the popup calendar shows when it opens
-                         minView = "months", #making it not possible to go down to a "days" view and pick the wrong date
+                         view = "months", # Edit what the popup calendar shows when it opens
+                         minView = "months", # Make it not possible to go down to a "days" view and pick the wrong date
                          dateFormat = "yyyy-MM",
                          language = "es"
       ),
@@ -69,15 +69,24 @@ ui <- fluidPage(
                 https://github.com/canovasjm/inflacion </a> </p>")
     ),
     
-    # Display plot and table
+    # Display plots and table
     mainPanel(
       h4("Inflación - Gráficos"),
       fluidRow(
-        downloadButton("download_inflation_cumulative", "Descargar grafico inflacion acumulada"),
-        column(width = 6, plotOutput("inflation_plot1")), # First plot
-        column(width = 6, plotOutput("inflation_plot2"))  # Second plot
+        column(
+          width = 6,
+          downloadButton("download_inflation_monthly", "Descargar gráfico inflación mensual"),
+          plotOutput("inflation_monthly_plot") # Monthly inflation plot
+        ),
+        column(
+          width = 6,
+          downloadButton("download_inflation_cumulative", "Descargar gráfico inflación acumulada"),
+          plotOutput("inflation_cumulative_plot") # Cumulative inflation plot
+        )
       ),
-      hr(),
+      
+      hr(), # Line break
+      
       h4("Inflación - Valores"),
       downloadButton('download_csv',"Descargar datos"),
       tableOutput("inflation_table")
@@ -85,8 +94,13 @@ ui <- fluidPage(
   )
 )
 
+
 # Define the server
 server <- function(input, output) {
+  
+  ###########################
+  # Reactive expressions for data wrangling
+  ###########################
   
   # Reactive expression to filter data
   filter_data <- reactive({
@@ -99,7 +113,6 @@ server <- function(input, output) {
     return(df)
   })
   
-  
   # Reactive expression to transform data
   transform_data <- reactive({
     df <- filter_data()
@@ -107,7 +120,6 @@ server <- function(input, output) {
     
     return(df)
   })
-  
   
   # Reactive expression to calculate cumulative inflation
   cumulative_inflation <- reactive({
@@ -121,27 +133,60 @@ server <- function(input, output) {
   })
   
   
-  # Display cumulative inflation
+  ###########################
+  # Render cumulative inflation value
+  ###########################
   output$cumulative_inflation <- renderText({
     paste0(round(cumulative_inflation() * 100, 2), "%")
   })
   
   
-  # Create monthly inflation plot
-  output$inflation_plot1 <- renderPlot({
-    filtered_data <- filter_data()
-    
-    ggplot(filtered_data, aes(x = month_year, y = filtered_data$inflation)) +
+  ###########################
+  # Monthly inflation plot
+  ###########################
+  
+  # Define function
+  make_inflation_monthly <- function(data) {
+    ggplot(data, aes(x = month_year, y = inflation)) +
       geom_col(linewidth = 1, group = 1) +
       scale_y_continuous(labels = function(x) paste0(x, "%")) +
       theme(axis.text.x = element_text(angle = 90)) +
-      labs(#title = "Cumulative Inflation Over Time",
+      labs(
+        #title = "Cumulative Inflation Over Time",
         x = "Año-mes",
-        y = "Inflación mensual")
+        y = "Inflación mensual"
+      )
+  }
+  
+  # Render plot
+  output$inflation_monthly_plot <- renderPlot({
+    filtered_data <- filter_data()
+    make_inflation_monthly(filtered_data)
   })
   
+  # Download handler
+  output$download_inflation_monthly <- downloadHandler(
+    filename = function() {
+      paste0("inflacion_mensual_grafico_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png")
+    },
+    content = function(file) {
+      filtered_data <- filter_data()
+      ggsave(
+        file,
+        plot = make_inflation_monthly(filtered_data),
+        width = 8,
+        height = 5,
+        dpi = 300
+      )
+    }
+  )
   
-  # Create cumulative inflation plot
+  
+  ###########################
+  # Cumulative inflation plot
+  ###########################
+  
+  # Define function
   make_inflation_cumulative <- function(data) {
     ggplot(data, aes(x = month_year, y = cumulative_inflation)) +
       geom_line(linewidth = 1, group = 1) +
@@ -154,11 +199,13 @@ server <- function(input, output) {
       )
   }
   
-  output$inflation_plot2 <- renderPlot({
+  # Render plot
+  output$inflation_cumulative_plot <- renderPlot({
     transformed_data <- transform_data() 
     make_inflation_cumulative(transformed_data)
   })
   
+  # Download handler
   output$download_inflation_cumulative <- downloadHandler(
     filename = function() {
       paste0("inflacion_acumulada_grafico_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".png")
@@ -176,7 +223,11 @@ server <- function(input, output) {
   )
 
   
-  # Create table
+  ###########################
+  # Table
+  ###########################
+  
+  # Render table
   output$inflation_table <- render_gt({
     transformed_data <- transform_data()
     
@@ -197,7 +248,7 @@ server <- function(input, output) {
   output$download_csv <- downloadHandler(
     
     filename = function() {
-      paste("inflation_data_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv", sep = "")
+      paste("inflacion_datos_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv", sep = "")
     },
     
     content = function(file) {
