@@ -1,0 +1,46 @@
+name: Download inflation from INDEC
+
+on:
+  schedule:
+    # Runs at 18:00 UTC on the 11th–16th of each month
+    - cron: '0 18 11-16 * *'
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  download-inflation:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+
+    - name: Install R packages
+      run: |
+        Rscript -e 'install.packages(c("lubridate", "readxl"))'
+
+    - name: Run script only on weekdays
+      run: |
+        weekday=$(date +%u)  # 1=Monday ... 7=Sunday
+        if [ "$weekday" -eq 6 ] || [ "$weekday" -eq 7 ]; then
+          echo "Today is Saturday or Sunday. Exiting."
+          exit 0
+        fi
+        Rscript download_inflation.R
+
+    - name: Check for changes
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+
+        if git diff --quiet inflation_data.csv; then
+          echo "No changes to inflation_data.csv"
+        else
+          # Determine previous month name
+          prev_month=$(date -d "$(date +%Y-%m-01) -1 month" +%B)
+          git add inflation_data.csv
+          git commit -m "Add ${prev_month} inflation data"
+          git push
+        fi
