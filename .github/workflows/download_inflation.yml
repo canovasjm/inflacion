@@ -13,6 +13,15 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+    
+    - name: Skip weekends
+      run: |
+        weekday=$(date +%u)  # 1=Monday ... 7=Sunday
+        echo "Weekday number: $weekday"
+        if [ "$weekday" -eq 6 ] || [ "$weekday" -eq 7 ]; then
+          echo "Today is Saturday or Sunday. Exiting early."
+          exit 0
+        fi
 
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
@@ -21,13 +30,8 @@ jobs:
       run: |
         Rscript -e 'install.packages(c("lubridate", "readxl"))'
 
-    - name: Run script only on weekdays
+    - name: Run script
       run: |
-        weekday=$(date +%u)  # 1=Monday ... 7=Sunday
-        if [ "$weekday" -eq 6 ] || [ "$weekday" -eq 7 ]; then
-          echo "Today is Saturday or Sunday. Exiting."
-          exit 0
-        fi
         Rscript download_inflation.R
 
     - name: Check for changes
