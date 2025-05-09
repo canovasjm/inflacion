@@ -17,6 +17,7 @@ jobs:
     - name: Skip weekends
       run: |
         weekday=$(date +%u)  # 1=Monday ... 7=Sunday
+        echo "Weekday number: $weekday"
         if [ "$weekday" -eq 6 ] || [ "$weekday" -eq 7 ]; then
           echo "Today is Saturday or Sunday. Exiting early."
           exit 0
