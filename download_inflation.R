@@ -1,15 +1,15 @@
-library(lubridate)
 library(readxl)
 
 message("Start processing...")
 
 # Get the previous month
 today <- Sys.Date()
-last_month <- today %m-% months(1)
+
+message("Today is: ", today)
 
 # Extract month and year components
-mm <- format(last_month, "%m")
-yy <- format(last_month, "%y") # Last 2 digits of year
+mm <- format(today, "%m")
+yy <- format(today, "%y") # Last 2 digits of year
 
 # Construct file name and URL
 file_name <- sprintf("sh_ipc_%s_%s.xls", mm, yy)
