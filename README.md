@@ -1,5 +1,5 @@
-[![INDEC download](https://github.com/canovasjm/inflacion/actions/workflows/download_inflation.yml/badge.svg)](https://github.com/canovasjm/inflacion/actions/workflows/download_inflation.yml)
-[![Format](https://github.com/canovasjm/inflacion/actions/workflows/format_check.yml/badge.svg)](https://github.com/canovasjm/inflacion/actions/workflows/format_check.yml)
+[(https://github.com/canovasjm/inflacion/actions/workflows/download_inflation.yml/badge.svg)](https://github.com/canovasjm/inflacion/actions/workflows/download_inflation.yml)
+[(https://github.com/canovasjm/inflacion/actions/workflows/format_check.yml/badge.svg)](https://github.com/canovasjm/inflacion/actions/workflows/format_check.yml)
 
 # Inflación Argentina
 Este repositorio contiene una Shiny App que permite visualizar la inflación acumulada en Argentina entre dos meses definidos por el usuario.  

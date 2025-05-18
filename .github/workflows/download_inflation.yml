@@ -1,4 +1,4 @@
-name: Download inflation from INDEC
+name: INDEC download
 
 on:
   schedule:
