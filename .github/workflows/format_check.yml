@@ -17,6 +17,11 @@ jobs:
 
       - name: Install
         uses: posit-dev/setup-air@v1
+        with:
+          air-version: "0.5.0"
+
+      - name: Print Air version
+        run: air --version
 
       - name: Check
         run: air format . --check
