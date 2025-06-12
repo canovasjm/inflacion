@@ -30,10 +30,9 @@ tryCatch(
       },
       error = function(e) {
         message(
-          "File is not a valid Excel file. Likely an error page."
+          "File is not a valid Excel file. Exiting without error."
         )
         file.remove(file_name)
-        message("File not available yet. Exiting without error.")
         quit(save = "no", status = 0)
       }
     )
