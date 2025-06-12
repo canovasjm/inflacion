@@ -18,18 +18,32 @@ message("File name is: ", file_name)
 url <- paste0("https://www.indec.gob.ar/ftp/cuadros/economia/", file_name)
 message("URL for download is: ", url)
 
-# Download the file and catch both errors and warnings
+# Try downloading the file
 tryCatch(
   {
     download.file(url, file_name, mode = "wb")
-    message("Download successful: ", file_name)
-  },
-  warning = function(w) {
-    message("Download warning: ", w$message)
-    quit(save = "no", status = 1)
+    # Try reading the file to check it's a valid Excel file
+    tryCatch(
+      {
+        read_excel(file_name, n_max = 1)
+        message("Download and validation successful: ", file_name)
+      },
+      error = function(e) {
+        message(
+          "File is not a valid Excel file. Likely an error page."
+        )
+        file.remove(file_name)
+        message("File not available yet. Exiting without error.")
+        quit(save = "no", status = 0)
+      }
+    )
   },
   error = function(e) {
     message("Download failed: ", e$message)
+    quit(save = "no", status = 1)
+  },
+  warning = function(w) {
+    message("Download warning: ", w$message)
     quit(save = "no", status = 1)
   }
 )
