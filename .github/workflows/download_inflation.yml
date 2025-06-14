@@ -55,3 +55,48 @@ jobs:
           git commit -m "Add ${prev_month} inflation data"
           git push
         fi
+        
+    - name: Commit and push to new branch
+      if: steps.check_weekend.outputs.is_weekend == 'false'
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+
+        if git diff --quiet inflation_data.csv; then
+          echo "No changes to inflation_data.csv"
+          exit 0
+        fi
+
+        BRANCH="auto/inflation-update"
+        git checkout -b "$BRANCH"
+        git add inflation_data.csv
+        prev_month=$(date -d "$(date +%Y-%m-01) -1 month" +%B)
+        git commit -m "Add ${prev_month} inflation data"
+        git push -f origin "$BRANCH"
+
+    - name: Create or update pull request
+      if: steps.check_weekend.outputs.is_weekend == 'false'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PR_TITLE="Update workflow: ${prev_month} inflation data"
+        PR_BODY="Auto-generated update by the download_inflation workflow."
+        BRANCH="auto/inflation-update"
+
+        # Check if PR already exists
+        existing_pr=$(gh pr list --head "$BRANCH" --json number -q '.[0].number')
+
+        if [ -z "$existing_pr" ]; then
+          gh pr create --title "$PR_TITLE" --body "$PR_BODY" --head "$BRANCH" --base main
+        else
+          echo "PR already exists: #$existing_pr"
+        fi
+
+    - name: Enable auto-merge
+      if: steps.check_weekend.outputs.is_weekend == 'false'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PR_URL=$(gh pr view auto/inflation-update --json url -q .url)
+        echo "Auto-merging PR at $PR_URL"
+        gh pr merge "$PR_URL" --auto --merge
