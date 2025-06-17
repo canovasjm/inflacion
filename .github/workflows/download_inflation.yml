@@ -68,7 +68,7 @@ jobs:
     - name: Create or update pull request
       if: steps.check_weekend.outputs.is_weekend == 'false'
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
       run: |
         PR_TITLE="Update workflow: ${{ steps.set_prev_month.outputs.prev_month }} inflation data"
         PR_BODY="Auto-generated update by the download_inflation workflow."
@@ -86,7 +86,7 @@ jobs:
     - name: Enable auto-merge
       if: steps.check_weekend.outputs.is_weekend == 'false'
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
       run: |
         PR_URL=$(gh pr view auto/inflation-update --json url -q .url)
         echo "Auto-merging PR at $PR_URL"
