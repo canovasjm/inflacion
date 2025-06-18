@@ -84,6 +84,11 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.PAT_GITHUB }}
       run: |
-        PR_URL=$(gh pr view auto/inflation-update --json url -q .url)
-        echo "Auto-merging PR at $PR_URL"
-        gh pr merge "$PR_URL" --auto --merge
+        PR_URL=$(gh pr view --head auto/inflation-update --json url -q .url 2>/dev/null || echo "")
+        if [ -z "$PR_URL" ]; then
+          echo "No PR found for branch auto/inflation-update"
+        else
+          echo "Auto-merging PR at $PR_URL"
+          gh pr merge "$PR_URL" --auto --merge
+        fi
+        
