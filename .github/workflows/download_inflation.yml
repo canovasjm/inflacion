@@ -50,6 +50,8 @@ jobs:
         
     - name: Commit and push to new branch
       if: steps.check_weekend.outputs.is_weekend == 'false'
+      env:
+        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
@@ -65,14 +67,8 @@ jobs:
         git commit -m "Add ${{ steps.set_prev_month.outputs.prev_month }} inflation data"
         git push -f origin "$BRANCH"
 
-    - name: Create or update pull request
-      if: steps.check_weekend.outputs.is_weekend == 'false'
-      env:
-        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
-      run: |
-        PR_TITLE="Update workflow: ${{ steps.set_prev_month.outputs.prev_month }} inflation data"
+        PR_TITLE="Update: ${{ steps.set_prev_month.outputs.prev_month }} inflation data"
         PR_BODY="Auto-generated update by the download_inflation workflow."
-        BRANCH="auto/inflation-update"
 
         # Check if PR already exists
         existing_pr=$(gh pr list --head "$BRANCH" --json number -q '.[0].number')
