@@ -40,18 +40,55 @@ jobs:
       if: steps.check_weekend.outputs.is_weekend == 'false'
       run: |
         Rscript download_inflation.R
-
-    - name: Check for changes
+    
+    - name: Get previous month
+      id: set_prev_month
+      run: |
+        prev_month=$(date -d "$(date +%Y-%m-01) -1 month" +%B)
+        echo "prev_month=$prev_month"
+        echo "prev_month=$prev_month" >> $GITHUB_OUTPUT
+        
+    - name: Commit and push to new branch
       if: steps.check_weekend.outputs.is_weekend == 'false'
+      env:
+        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
 
         if git diff --quiet inflation_data.csv; then
           echo "No changes to inflation_data.csv"
-        else
-          prev_month=$(date -d "$(date +%Y-%m-01) -1 month" +%B)
-          git add inflation_data.csv
-          git commit -m "Add ${prev_month} inflation data"
-          git push
+          exit 0
         fi
+
+        BRANCH="auto/inflation-update"
+        git checkout -b "$BRANCH"
+        git add inflation_data.csv
+        git commit -m "Add ${{ steps.set_prev_month.outputs.prev_month }} inflation data"
+        git push -f origin "$BRANCH"
+
+        PR_TITLE="Update: ${{ steps.set_prev_month.outputs.prev_month }} inflation data"
+        PR_BODY="Auto-generated update by the download_inflation workflow."
+
+        # Check if PR already exists
+        existing_pr=$(gh pr list --head "$BRANCH" --json number -q '.[0].number')
+
+        if [ -z "$existing_pr" ]; then
+          gh pr create --title "$PR_TITLE" --body "$PR_BODY" --head "$BRANCH" --base main
+        else
+          echo "PR already exists: #$existing_pr"
+        fi
+
+    - name: Enable auto-merge
+      if: steps.check_weekend.outputs.is_weekend == 'false'
+      env:
+        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
+      run: |
+        PR_URL=$(gh pr view --head auto/inflation-update --json url -q .url 2>/dev/null || echo "")
+        if [ -z "$PR_URL" ]; then
+          echo "No PR found for branch auto/inflation-update"
+        else
+          echo "Auto-merging PR at $PR_URL"
+          gh pr merge "$PR_URL" --auto --merge
+        fi
+        
