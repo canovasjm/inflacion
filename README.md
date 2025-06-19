@@ -5,7 +5,7 @@
 Este repositorio contiene una Shiny App que permite visualizar la inflación acumulada en Argentina entre dos meses definidos por el usuario.  
 Link: https://canovasjm.shinyapps.io/inflacion/  
 
-### Calculo  
+### Cálculo  
 Para calcular la inflación acumulada en un mes específico, se usa la siguiente ecuación:  
 
 $$inflación \ acumulada = [(1 + inflación \ en \ mes \ 1) \times \dots \times (1 + inflación \ en \ mes \ n)] - 1$$
