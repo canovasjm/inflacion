@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   download-inflation:
@@ -26,6 +27,12 @@ jobs:
         else
           echo "is_weekend=false" >> $GITHUB_OUTPUT
         fi
+    
+    - name: Install GitHub CLI
+      if: steps.check_weekend.outputs.is_weekend == 'false'
+      run: |
+          sudo apt-get update
+          sudo apt-get install gh -y
 
     - name: Set up R
       if: steps.check_weekend.outputs.is_weekend == 'false'
