@@ -42,6 +42,7 @@ jobs:
         Rscript download_inflation.R
     
     - name: Get previous month
+      if: steps.check_weekend.outputs.is_weekend == 'false'
       id: set_prev_month
       run: |
         prev_month=$(date -d "$(date +%Y-%m-01) -1 month" +%B)
