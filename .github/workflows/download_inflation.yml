@@ -86,7 +86,14 @@ jobs:
         else
           echo "PR already exists: #$existing_pr"
         fi
-
+    
+    - name: List PRs for debug
+      env:
+        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
+      run: |
+        echo "Existing PRs from branch:"
+        gh pr list --head auto/inflation-update
+    
     - name: Enable auto-merge
       if: steps.check_weekend.outputs.is_weekend == 'false'
       env:
