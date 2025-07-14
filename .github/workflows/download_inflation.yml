@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   download-inflation:
@@ -26,6 +27,12 @@ jobs:
         else
           echo "is_weekend=false" >> $GITHUB_OUTPUT
         fi
+    
+    - name: Install GitHub CLI
+      if: steps.check_weekend.outputs.is_weekend == 'false'
+      run: |
+          sudo apt-get update
+          sudo apt-get install gh -y
 
     - name: Set up R
       if: steps.check_weekend.outputs.is_weekend == 'false'
@@ -42,6 +49,7 @@ jobs:
         Rscript download_inflation.R
     
     - name: Get previous month
+      if: steps.check_weekend.outputs.is_weekend == 'false'
       id: set_prev_month
       run: |
         prev_month=$(date -d "$(date +%Y-%m-01) -1 month" +%B)
@@ -84,7 +92,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.PAT_GITHUB }}
       run: |
-        PR_URL=$(gh pr view --head auto/inflation-update --json url -q .url 2>/dev/null || echo "")
+        PR_URL=$(gh pr list --head auto/inflation-update --json url -q '.[0].url')
         if [ -z "$PR_URL" ]; then
           echo "No PR found for branch auto/inflation-update"
         else
