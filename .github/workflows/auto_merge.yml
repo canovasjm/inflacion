@@ -1,8 +1,8 @@
-name: Auto-merge after download + format-check
+name: Auto-merge INDEC download
 
 on:
   workflow_run:
-    workflows: ["download_inflation"]
+    workflows: ["INDEC download"]
     types:
       - completed
   workflow_dispatch:
