@@ -45,8 +45,8 @@ jobs:
       
           for i in {1..20}; do
             echo "Checking status... ($i/20)"
-            CHECKS_JSON=$(gh pr checks "$PR_URL" --json name,conclusion)
-            STATUS=$(echo "$CHECKS_JSON" | jq -r '.[] | select(.name == "format-check") | .conclusion')
+            CHECKS_JSON=$(gh pr checks "$PR_URL" --json name,state)
+            STATUS=$(echo "$CHECKS_JSON" | jq -r '.[] | select(.name == "format-check") | .state')
       
             if [[ "$STATUS" == "SUCCESS" ]]; then
               echo "✅ format-check passed!"
