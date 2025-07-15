@@ -86,17 +86,3 @@ jobs:
         else
           echo "PR already exists: #$existing_pr"
         fi
-
-    - name: Enable auto-merge
-      if: steps.check_weekend.outputs.is_weekend == 'false'
-      env:
-        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
-      run: |
-        PR_URL=$(gh pr list --head auto/inflation-update --json url -q '.[0].url')
-        if [ -z "$PR_URL" ]; then
-          echo "No PR found for branch auto/inflation-update"
-        else
-          echo "Auto-merging PR at $PR_URL"
-          gh pr merge "$PR_URL" --auto --merge
-        fi
-        

@@ -1,0 +1,64 @@
+name: Auto-merge INDEC download
+
+on:
+  workflow_run:
+    workflows: ["INDEC download"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  wait-and-merge:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh jq
+
+      - name: Wait for format-check to complete
+        env:
+          GH_TOKEN: ${{ secrets.PAT_GITHUB }}
+        run: |
+          echo "Looking for PR from auto/inflation-update branch..."
+          PR_JSON=$(gh pr list --head auto/inflation-update --json number,url -q '.[0]')
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number')
+          PR_URL=$(echo "$PR_JSON" | jq -r '.url')
+
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+            echo "No PR found."
+            exit 0
+          fi
+
+          echo "Waiting for format-check to pass on PR #$PR_NUMBER"
+
+          for i in {1..20}; do
+            STATUS=$(gh pr checks "$PR_URL" --json checkRuns -q '.checkRuns[] | select(.name == "format-check") | .conclusion')
+            if [[ "$STATUS" == "SUCCESS" ]]; then
+              echo "format-check passed!"
+              break
+            elif [[ "$STATUS" == "FAILURE" ]]; then
+              echo "format-check failed. Exiting."
+              exit 1
+            fi
+            echo "Waiting for format-check... ($i/20)"
+            sleep 15
+          done
+
+          if [[ "$STATUS" != "SUCCESS" ]]; then
+            echo "format-check did not complete in time."
+            exit 1
+          fi
+
+      - name: Auto-merge PR
+        env:
+          GH_TOKEN: ${{ secrets.PAT_GITHUB }}
+        run: |
+          echo "Merging PR at $PR_URL"
+          gh pr merge "$PR_URL" --auto --merge
