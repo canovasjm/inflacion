@@ -13,7 +13,9 @@ permissions:
 
 jobs:
   wait-and-merge:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
 
     steps:
@@ -33,29 +35,36 @@ jobs:
           PR_JSON=$(gh pr list --head auto/inflation-update --json number,url -q '.[0]')
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number')
           PR_URL=$(echo "$PR_JSON" | jq -r '.url')
-
+      
           if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
             echo "No PR found."
             exit 0
           fi
-
+      
           echo "Waiting for format-check to pass on PR #$PR_NUMBER"
-
+      
           for i in {1..20}; do
-            STATUS=$(gh pr checks "$PR_URL" --json checkRuns -q '.checkRuns[] | select(.name == "format-check") | .conclusion')
+            echo "Checking status... ($i/20)"
+            CHECKS_JSON=$(gh pr checks "$PR_URL" --json name,state)
+            STATUS=$(echo "$CHECKS_JSON" | jq -r '.[] | select(.name == "format-check") | .state')
+      
             if [[ "$STATUS" == "SUCCESS" ]]; then
-              echo "format-check passed!"
+              echo "✅ format-check passed!"
               break
             elif [[ "$STATUS" == "FAILURE" ]]; then
-              echo "format-check failed. Exiting."
+              echo "❌ format-check failed."
               exit 1
+            elif [[ "$STATUS" == "" ]]; then
+              echo "⏳ format-check not found yet."
+            else
+              echo "⏳ format-check status: $STATUS"
             fi
-            echo "Waiting for format-check... ($i/20)"
+      
             sleep 15
           done
-
+      
           if [[ "$STATUS" != "SUCCESS" ]]; then
-            echo "format-check did not complete in time."
+            echo "❌ format-check did not pass within timeout."
             exit 1
           fi
 
