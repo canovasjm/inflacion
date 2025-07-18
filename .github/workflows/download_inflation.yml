@@ -87,9 +87,10 @@ jobs:
           echo "PR already exists: #$existing_pr"
         fi
         
-    - name: Trigger format-check manually
+    - name: Trigger PR check via empty commit
       if: steps.check_weekend.outputs.is_weekend == 'false'
-      env:
-        GH_TOKEN: ${{ secrets.PAT_GITHUB }}
       run: |
-        gh workflow run "Air format" --ref auto/inflation-update
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git commit --allow-empty -m "Trigger format-check"
+        git push origin auto/inflation-update
