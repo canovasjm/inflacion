@@ -22,14 +22,13 @@ jobs:
     - name: Check weekend
       id: check_weekend
       run: |
-        # weekday=$(date +%u)  # 1=Monday, ..., 7=Sunday
-        # echo "Weekday number: $weekday"
-        # if [ "$weekday" -eq 6 ] || [ "$weekday" -eq 7 ]; then
-        #   echo "is_weekend=true" >> $GITHUB_OUTPUT
-        # else
-        #   echo "is_weekend=false" >> $GITHUB_OUTPUT
-        # fi
-        echo "is_weekend=false" >> $GITHUB_OUTPUT
+        weekday=$(date +%u)  # 1=Monday, ..., 7=Sunday
+        echo "Weekday number: $weekday"
+        if [ "$weekday" -eq 6 ] || [ "$weekday" -eq 7 ]; then
+          echo "is_weekend=true" >> $GITHUB_OUTPUT
+        else
+          echo "is_weekend=false" >> $GITHUB_OUTPUT
+        fi
     
     - name: Set up R
       if: steps.check_weekend.outputs.is_weekend == 'false'
