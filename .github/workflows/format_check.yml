@@ -2,9 +2,9 @@
 name: Air format
 
 on:
-  push:
-    branches: [main]
   pull_request:
+  push:
+  workflow_dispatch:
 
 permissions: read-all
 
@@ -25,3 +25,4 @@ jobs:
 
       - name: Check
         run: air format . --check
+        
